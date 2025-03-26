@@ -92,13 +92,23 @@ for date in dates:
     if os.path.exists(file_nc):
         os.remove(file_nc)
     ncfile = nc.Dataset(file_nc, mode='w', format='NETCDF4')
+
+    levels = np.array([9, 10, 11, 12])
+
     # Create dimensions
     time_dim = ncfile.createDimension('time', steps)
     height_dim = ncfile.createDimension('height', 4)
     base_time_dim = ncfile.createDimension('base_time', 1)
-
+    level_dim = ncfile.createDimension('level', len(levels))
 
     # Create variables
+    level_var = ncfile.createVariable('level', 'f8', ('level', ))
+    level_var[:] = levels
+    level_var.units = 'index'
+    level_var.long_name = 'vertical layer index'
+    level_var.positive = 'up'
+    level_var.axis = 'Z'
+
     base_time = ncfile.createVariable('base_time', 'i8')
     base_time.unit = 'second since 1970-1-1 0:00:00'
     base_time.ancillary_variables = 'time_offset'
@@ -116,65 +126,65 @@ for date in dates:
     time_var.calendar = "standard"
     time_var[:] = np.arange(0, 86400, 0.1)
 
-    Ux = ncfile.createVariable('Ux', np.float32, ('time', 'height'))
+    Ux = ncfile.createVariable('Ux', np.float32, ('time', 'level'))
     Ux.units = 'm/s'
     Ux.long_name = 'Zonal wind'
 
-    Uy = ncfile.createVariable('Uy', np.float32, ('time', 'height'))
+    Uy = ncfile.createVariable('Uy', np.float32, ('time', 'level'))
     Uy.units = 'm/s'
     Uy.long_name = 'Meridional wind'
 
-    Uz = ncfile.createVariable('Uz', np.float32, ('time', 'height'))
+    Uz = ncfile.createVariable('Uz', np.float32, ('time', 'level'))
     Uz.units = 'm/s'
     Uz.long_name = 'Vertical wind'
 
-    Ts = ncfile.createVariable('Ts', np.float32, ('time', 'height'))
+    Ts = ncfile.createVariable('Ts', np.float32, ('time', 'level'))
     Ts.units = 'deg C'
     Ts.long_name = 'Sonic temperature'
 
-    diag_sonic = ncfile.createVariable('diag_sonic', 'f4', ('time', 'height'))
+    diag_sonic = ncfile.createVariable('diag_sonic', 'f4', ('time', 'level'))
     diag_sonic.units = '#'
     diag_sonic.long_name = 'Sonic diagnostic'
 
-    h2o = ncfile.createVariable('h2o', np.float32, ('time', 'height'))
+    h2o = ncfile.createVariable('h2o', np.float32, ('time', 'level'))
     h2o.units = 'g/m^3'
     h2o.long_name = 'water vapor density'
 
-    co2 = ncfile.createVariable('co2', np.float32, ('time', 'height'))
+    co2 = ncfile.createVariable('co2', np.float32, ('time', 'level'))
     co2.units = 'mg/m^3'
     co2.long_name = 'CO2 density'
 
-    Press = ncfile.createVariable('Press', np.float32, ('time', 'height'))
+    Press = ncfile.createVariable('Press', np.float32, ('time', 'level'))
     Press.units = 'kPa'
     Press.long_name = 'Air Pressure'
 
-    sig_irga = ncfile.createVariable('sig_irga', 'f4', ('time', 'height'))
+    sig_irga = ncfile.createVariable('sig_irga', 'f4', ('time', 'level'))
     sig_irga.units = '#'
     sig_irga.long_name = 'IRGA signal strength'
 
-    FW = ncfile.createVariable('FW', np.float32, ('time', 'height'))
+    FW = ncfile.createVariable('FW', np.float32, ('time', 'level'))
     FW.units = 'degree C'
     FW.long_name = 'FW05 temperature'
 
-    Tair = ncfile.createVariable('Tair', np.float32, ('time', 'height'))
+    Tair = ncfile.createVariable('Tair', np.float32, ('time', 'level'))
     Tair.units = 'degree C'
     Tair.long_name = '1 hz air temperature'
 
-    RH = ncfile.createVariable('RH', np.float32, ('time', 'height'))
+    RH = ncfile.createVariable('RH', np.float32, ('time', 'level'))
     RH.units = '%'
     RH.long_name = '1 hz relative humidity'
 
-    height_var = ncfile.createVariable("height", "f8", ("height",))
+    height_var = ncfile.createVariable("height", "f8", ("level",))
     height_var.units = 'm'
     height_var.long_name = 'layer height'
+    height_var[:] = np.array([30.3, 40.2, 50.6, 60.5])
 
-    sonic_azimuth = ncfile.createVariable("sonic_azimuth", "f8", ("height",))
+    sonic_azimuth = ncfile.createVariable("sonic_azimuth", "f8", ("level",))
     sonic_azimuth.units = 'degree'
     sonic_azimuth.long_name = 'Sonic azimuth'
+    sonic_azimuth[:] = np.array([338.8, 337.2, 337.5, 340.3])
 
     # Fill the data
-    height_var[:] = [30.3, 40.2, 50.6, 60.5]
-    sonic_azimuth[:] = [338.8, 337.2, 337.5, 340.3]
     for column in df_day.columns:
         for num in ['1', '2', '3', '4']:
             if num in column:
